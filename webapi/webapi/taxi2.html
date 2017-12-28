@@ -1,0 +1,111 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<base href="../"> 
+<meta charset="UTF-8">
+ <script src="/Scripts/jquery-1.10.2.min.js"></script>
+<title>统计</title>
+</head>
+<body>
+
+信息录入&nbsp;&nbsp;&nbsp;<a href="javascript:dodelete(null);">清空</a><br>
+<form name= "myform" method = "post" >
+车    号  <input id="carnum" name="carnum"  /><br>
+日    期  <input id="date" name="date" /><br>
+时    间  <input id="time" name="time" /><br>
+金    额  <input id="money" name="money" onblur="dosubmit();" ><br>
+</form>
+目前总金额：<p id="summoney"/>
+<table><tr><th> 车牌号     </th><th> 日期 </th><th>    金额 </th><th>   操作</th><th></th></tr></table>
+<table class="testtable"></table>
+</body>
+<script type="text/javascript">
+doselectAll();
+function dosubmit(){
+	var carnum=$("#carnum").val();
+	var date=$("#date").val();
+	var time=$("#time").val();
+	var money=$("#money").val();
+    		jQuery.ajax({
+                url: 'http://localhost:56482/Taxi/taxidosubmit',   
+                type: 'post',
+                dataType: 'JSON',
+                data: {'carnum':carnum,'date':date,'time':time,'money':money},
+                success:function(data){
+                    if(data.success){
+                    	//查询列表
+                    	doselectAll();
+                    	//清空
+                    	$("#carnum").val("");
+                    	$("#date").val("");
+                    	$("#time").val("");
+                    	$("#money").val("");
+                    }
+                    else
+                    {
+                        alert(data.msg);
+                        $("#carnum").val("");
+                        $("#date").val("");
+                        $("#time").val("");
+                        $("#money").val("");
+                    }
+                }    
+            });
+}
+
+function dodelete(id){
+	jQuery.ajax({
+        url: 'http://localhost:56482/Taxi/taxidelete',   
+        type: 'post',
+        dataType: 'JSON',
+        data: {'id':id},
+        success:function(data){
+            if(data.success){
+            	doselectAll();
+            	$("#carnum").val("");
+            	$("#date").val("");
+            	$("#time").val("");
+            	$("#money").val("");
+            }
+            else
+            {
+            	alert(data.msg)
+            }
+        }    
+    });
+}
+function doselectAll(){
+	//清空table数据
+	//$(".testtable tr:not(:first)").empty();
+	$(".testtable").html("");
+	$("#carnum").val("");
+	$("#date").val("");
+	$("#time").val("");
+	$("#money").val("");
+	//查询所有
+	jQuery.ajax({
+        url: 'http://localhost:56482/Taxi/taxiSelectAll',   
+        type: 'get',
+        dataType: 'JSON',
+        success:function(data){
+            if(data.success){
+            	var item;
+            	$("#summoney").text(data.attributes.summoney)
+            	 $.each(data.obj,function(i,result){  
+                     item = "<tr><td>"+result['taxinum']+
+                     "</td><td>"+result['date']+
+                     "</td><td>"+result['money']+
+                     "</td><td>"+"<a href='javascript:dodelete("+result['id']+")'>删除"+
+                     "</td></tr>";  
+                     $('.testtable').append(item);  
+                 });  
+            }
+            else
+            {
+            	alert(data.msg)
+            }
+        }    
+    });
+}
+</script>
+</html>
